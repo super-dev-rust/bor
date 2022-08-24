@@ -1592,7 +1592,10 @@ func (d *Downloader) processSnapSyncContent() error {
 	// Start syncing state of the reported head block. This should get us most of
 	// the state of the pivot block.
 	d.pivotLock.RLock()
-	sync := d.syncState(d.pivotHeader.Root)
+
+	// Block number: 32260262
+	// State root: 0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277
+	sync := d.syncState(common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277"))
 	d.pivotLock.RUnlock()
 
 	defer func() {
@@ -1639,12 +1642,14 @@ func (d *Downloader) processSnapSyncContent() error {
 		// notifications from the header downloader
 		d.pivotLock.RLock()
 		pivot := d.pivotHeader
+		pivot.Root = common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277")
+		pivot.Number = big.NewInt(32260262)
 		d.pivotLock.RUnlock()
 
 		if oldPivot == nil {
 			if pivot.Root != sync.root {
 				sync.Cancel()
-				sync = d.syncState(pivot.Root)
+				sync = d.syncState(pivot.Root) // hoping to not reach here
 
 				go closeOnErr(sync)
 			}
@@ -1667,6 +1672,8 @@ func (d *Downloader) processSnapSyncContent() error {
 
 				d.pivotLock.Lock()
 				d.pivotHeader = pivot
+				pivot.Root = common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277")
+				pivot.Number = big.NewInt(32260262)
 				d.pivotLock.Unlock()
 
 				// Write out the pivot into the database so a rollback beyond it will
@@ -1682,7 +1689,7 @@ func (d *Downloader) processSnapSyncContent() error {
 			// If new pivot block found, cancel old state retrieval and restart
 			if oldPivot != P {
 				sync.Cancel()
-				sync = d.syncState(P.Header.Root)
+				sync = d.syncState(common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277"))
 
 				go closeOnErr(sync)
 				oldPivot = P
