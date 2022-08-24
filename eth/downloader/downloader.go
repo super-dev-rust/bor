@@ -1593,9 +1593,9 @@ func (d *Downloader) processSnapSyncContent() error {
 	// the state of the pivot block.
 	d.pivotLock.RLock()
 
-	// Block number: 32260262
-	// State root: 0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277
-	sync := d.syncState(common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277"))
+	// Block number: 32267812
+	// State root: 0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a
+	sync := d.syncState(common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a"))
 	d.pivotLock.RUnlock()
 
 	defer func() {
@@ -1642,7 +1642,7 @@ func (d *Downloader) processSnapSyncContent() error {
 		// notifications from the header downloader
 		d.pivotLock.RLock()
 		pivot := d.pivotHeader
-		pivot.Root = common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277")
+		pivot.Root = common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a")
 		pivot.Number = big.NewInt(32260262)
 		d.pivotLock.RUnlock()
 
@@ -1672,7 +1672,7 @@ func (d *Downloader) processSnapSyncContent() error {
 
 				d.pivotLock.Lock()
 				d.pivotHeader = pivot
-				pivot.Root = common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277")
+				pivot.Root = common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a")
 				pivot.Number = big.NewInt(32260262)
 				d.pivotLock.Unlock()
 
@@ -1689,7 +1689,7 @@ func (d *Downloader) processSnapSyncContent() error {
 			// If new pivot block found, cancel old state retrieval and restart
 			if oldPivot != P {
 				sync.Cancel()
-				sync = d.syncState(common.HexToHash("0xe9dea1e214ae207586c9c8ba5319edf7db7f81da7c8a05da88e9a327db80a277"))
+				sync = d.syncState(common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a"))
 
 				go closeOnErr(sync)
 				oldPivot = P
@@ -1697,6 +1697,7 @@ func (d *Downloader) processSnapSyncContent() error {
 			// Wait for completion, occasionally checking for pivot staleness
 			select {
 			case <-sync.done:
+				log.Info("### sync.done, calling commitPivotBlock", "err", sync.err)
 				if sync.err != nil {
 					return sync.err
 				}
@@ -1756,7 +1757,7 @@ func (d *Downloader) commitSnapSyncData(results []*fetchResult, stateSync *state
 	}
 	// Retrieve the a batch of results to import
 	first, last := results[0].Header, results[len(results)-1].Header
-	log.Debug("Inserting snap-sync blocks", "items", len(results),
+	log.Info("Inserting snap-sync blocks", "items", len(results),
 		"firstnum", first.Number, "firsthash", first.Hash(),
 		"lastnumn", last.Number, "lasthash", last.Hash(),
 	)
@@ -1775,7 +1776,7 @@ func (d *Downloader) commitSnapSyncData(results []*fetchResult, stateSync *state
 
 func (d *Downloader) commitPivotBlock(result *fetchResult) error {
 	block := types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Uncles)
-	log.Debug("Committing snap sync pivot as new head", "number", block.Number(), "hash", block.Hash())
+	log.Info("Committing snap sync pivot as new head", "number", block.Number(), "hash", block.Hash())
 
 	// Commit the pivot block as the new head, will require full sync from here on
 	if _, err := d.blockchain.InsertReceiptChain([]*types.Block{block}, []types.Receipts{result.Receipts}, d.ancientLimit); err != nil {
