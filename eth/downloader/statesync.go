@@ -25,6 +25,7 @@ import (
 
 // syncState starts downloading state with the given root hash.
 func (d *Downloader) syncState(root common.Hash) *stateSync {
+	log.Info("✅ Starting state sync", "state root", root)
 	// Create the state sync
 	s := newStateSync(d, root)
 	select {
