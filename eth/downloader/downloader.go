@@ -1593,9 +1593,9 @@ func (d *Downloader) processSnapSyncContent() error {
 	// the state of the pivot block.
 	d.pivotLock.RLock()
 
-	// Block number: 32267812
-	// State root: 0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a
-	sync := d.syncState(common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a"))
+	// Block number: 32510651
+	// State root: 0xe09e1d48b6af024be659088e82ba7da824f4108e2f8c3aa095dd567ceb6fd327
+	sync := d.syncState(common.HexToHash("0xe09e1d48b6af024be659088e82ba7da824f4108e2f8c3aa095dd567ceb6fd327"))
 	d.pivotLock.RUnlock()
 
 	defer func() {
@@ -1642,8 +1642,8 @@ func (d *Downloader) processSnapSyncContent() error {
 		// notifications from the header downloader
 		d.pivotLock.RLock()
 		pivot := d.pivotHeader
-		pivot.Root = common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a")
-		pivot.Number = big.NewInt(32260262)
+		pivot.Root = common.HexToHash("0xe09e1d48b6af024be659088e82ba7da824f4108e2f8c3aa095dd567ceb6fd327")
+		pivot.Number = big.NewInt(32510651)
 		d.pivotLock.RUnlock()
 
 		if oldPivot == nil {
@@ -1672,8 +1672,8 @@ func (d *Downloader) processSnapSyncContent() error {
 
 				d.pivotLock.Lock()
 				d.pivotHeader = pivot
-				pivot.Root = common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a")
-				pivot.Number = big.NewInt(32260262)
+				pivot.Root = common.HexToHash("0xe09e1d48b6af024be659088e82ba7da824f4108e2f8c3aa095dd567ceb6fd327")
+				pivot.Number = big.NewInt(32510651)
 				d.pivotLock.Unlock()
 
 				// Write out the pivot into the database so a rollback beyond it will
@@ -1689,7 +1689,7 @@ func (d *Downloader) processSnapSyncContent() error {
 			// If new pivot block found, cancel old state retrieval and restart
 			if oldPivot != P {
 				sync.Cancel()
-				sync = d.syncState(common.HexToHash("0x3d268778705d856616319b1254c50493703bd2cb7686bceb950a39958ee2194a"))
+				sync = d.syncState(common.HexToHash("0xe09e1d48b6af024be659088e82ba7da824f4108e2f8c3aa095dd567ceb6fd327"))
 
 				go closeOnErr(sync)
 				oldPivot = P
