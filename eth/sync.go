@@ -209,31 +209,33 @@ func (cs *chainSyncer) modeAndLocalHead() (downloader.SyncMode, *big.Int) {
 	// we have it working
 
 	// Handle full sync mode only
-	head := cs.handler.chain.CurrentBlock()
-	td := cs.handler.chain.GetTd(head.Hash(), head.NumberU64())
-	return downloader.FullSync, td
+	// head := cs.handler.chain.CurrentBlock()
+	// td := cs.handler.chain.GetTd(head.Hash(), head.NumberU64())
+	// return downloader.FullSync, td
 
 	// TODO(snap): Uncomment when we have snap sync working
 
 	// If we're in snap sync mode, return that directly
-	// if atomic.LoadUint32(&cs.handler.snapSync) == 1 {
-	// 	block := cs.handler.chain.CurrentFastBlock()
-	// 	td := cs.handler.chain.GetTd(block.Hash(), block.NumberU64())
-	// 	return downloader.SnapSync, td
-	// }
-	// // We are probably in full sync, but we might have rewound to before the
-	// // snap sync pivot, check if we should reenable
-	// if pivot := rawdb.ReadLastPivotNumber(cs.handler.database); pivot != nil {
-	// 	if head := cs.handler.chain.CurrentBlock(); head.NumberU64() < *pivot {
-	// 		block := cs.handler.chain.CurrentFastBlock()
-	// 		td := cs.handler.chain.GetTd(block.Hash(), block.NumberU64())
-	// 		return downloader.SnapSync, td
-	// 	}
-	// }
+	if atomic.LoadUint32(&cs.handler.snapSync) == 1 {
+		block := cs.handler.chain.CurrentFastBlock()
+		td := cs.handler.chain.GetTd(block.Hash(), block.NumberU64())
+		return downloader.SnapSync, td
+	}
+
+	// We are probably in full sync, but we might have rewound to before the
+	// snap sync pivot, check if we should reenable
+	if pivot := rawdb.ReadLastPivotNumber(cs.handler.database); pivot != nil {
+		if head := cs.handler.chain.CurrentBlock(); head.NumberU64() < *pivot {
+			block := cs.handler.chain.CurrentFastBlock()
+			td := cs.handler.chain.GetTd(block.Hash(), block.NumberU64())
+			return downloader.SnapSync, td
+		}
+	}
+
 	// Nope, we're really full syncing
-	// head := cs.handler.chain.CurrentBlock()
-	// td := cs.handler.chain.GetTd(head.Hash(), head.NumberU64())
-	// return downloader.FullSync, td
+	head := cs.handler.chain.CurrentBlock()
+	td := cs.handler.chain.GetTd(head.Hash(), head.NumberU64())
+	return downloader.FullSync, td
 }
 
 // startSync launches doSync in a new goroutine.

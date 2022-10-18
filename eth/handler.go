@@ -167,10 +167,10 @@ func newHandler(config *handlerConfig) (*handler, error) {
 			// we have it working
 
 			// TODO(snap): Uncomment when we have snap sync working
-			// h.snapSync = uint32(1)
-			// log.Warn("Switch sync mode from full sync to snap sync")
+			h.snapSync = uint32(1)
+			log.Warn("Switch sync mode from full sync to snap sync")
 
-			log.Warn("Preventing switching sync mode from full sync to snap sync")
+			// log.Warn("Preventing switching sync mode from full sync to snap sync")
 		}
 	} else {
 		if h.chain.CurrentBlock().NumberU64() > 0 {
