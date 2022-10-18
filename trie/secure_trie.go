@@ -87,6 +87,32 @@ func (t *SecureTrie) TryGetNode(path []byte) ([]byte, int, error) {
 	return t.trie.TryGetNode(path)
 }
 
+// TryGetAccount attempts to retrieve an account with provided trie path.
+// If the specified account is not in the trie, nil will be returned.
+// If a trie node is not found in the database, a MissingNodeError is returned.
+func (t *SecureTrie) TryGetAccount(key []byte) (*types.StateAccount, error) {
+	res, err := t.trie.TryGet(t.hashKey(key))
+	if res == nil || err != nil {
+		return nil, err
+	}
+	ret := new(types.StateAccount)
+	err = rlp.DecodeBytes(res, ret)
+	return ret, err
+}
+
+// TryGetAccountWithPreHashedKey does the same thing as TryGetAccount, however
+// it expects a key that is already hashed. This constitutes an abstraction leak,
+// since the client code needs to know the key format.
+func (t *SecureTrie) TryGetAccountWithPreHashedKey(key []byte) (*types.StateAccount, error) {
+	res, err := t.trie.TryGet(key)
+	if res == nil || err != nil {
+		return nil, err
+	}
+	ret := new(types.StateAccount)
+	err = rlp.DecodeBytes(res, ret)
+	return ret, err
+}
+
 // TryUpdate account will abstract the write of an account to the
 // secure trie.
 func (t *SecureTrie) TryUpdateAccount(key []byte, acc *types.StateAccount) error {
