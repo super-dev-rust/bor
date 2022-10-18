@@ -606,7 +606,7 @@ func (s *Syncer) Sync(root common.Hash, cancel chan struct{}) error {
 		s.saveSyncStatus()
 	}()
 
-	log.Debug("Starting snapshot sync cycle", "root", root)
+	log.Info("Starting snapshot sync cycle", "root", root)
 
 	// Flush out the last committed raw states
 	defer func() {
@@ -619,7 +619,7 @@ func (s *Syncer) Sync(root common.Hash, cancel chan struct{}) error {
 
 	// Whether sync completed or not, disregard any future packets
 	defer func() {
-		log.Debug("Terminating snapshot sync cycle", "root", root)
+		log.Info("Terminating snapshot sync cycle", "root", root)
 		s.lock.Lock()
 		s.accountReqs = make(map[uint64]*accountRequest)
 		s.storageReqs = make(map[uint64]*storageRequest)
@@ -656,6 +656,9 @@ func (s *Syncer) Sync(root common.Hash, cancel chan struct{}) error {
 		// Remove all completed tasks and terminate sync if everything's done
 		s.cleanStorageTasks()
 		s.cleanAccountTasks()
+
+		log.Info("Syncer.Sync", "sync tasks", len(s.tasks), "healing tasks", s.healer.scheduler.Pending())
+
 		if len(s.tasks) == 0 && s.healer.scheduler.Pending() == 0 {
 			return nil
 		}
