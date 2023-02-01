@@ -42,6 +42,9 @@ var mainnetBor = &Chain{
 					"0":        64,
 					"38189056": 16,
 				},
+				BackupMultiplier: map[string]uint64{
+					"0": 2,
+				},
 				ValidatorContract:     "0x0000000000000000000000000000000000001000",
 				StateReceiverContract: "0x0000000000000000000000000000000000001001",
 				OverrideStateSyncRecords: map[string]int{
