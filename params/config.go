@@ -278,8 +278,13 @@ var (
 			Period: map[string]uint64{
 				"0": 2,
 			},
-			ProducerDelay: 6,
-			Sprint:        64,
+			DelhiBlock: big.NewInt(0),
+			ProducerDelay: map[string]uint64{
+				"0": 6,
+			},
+			Sprint: map[string]uint64{
+				"0": 64,
+			},
 			BackupMultiplier: map[string]uint64{
 				"0": 2,
 			},
@@ -310,8 +315,13 @@ var (
 			Period: map[string]uint64{
 				"0": 1,
 			},
-			ProducerDelay: 3,
-			Sprint:        32,
+			DelhiBlock: big.NewInt(0),
+			ProducerDelay: map[string]uint64{
+				"0": 3,
+			},
+			Sprint: map[string]uint64{
+				"0": 32,
+			},
 			BackupMultiplier: map[string]uint64{
 				"0": 2,
 			},
@@ -343,11 +353,15 @@ var (
 		Bor: &BorConfig{
 			JaipurBlock: 22770000,
 			Period: map[string]uint64{
-				"0":        2,
-				"25275000": 5,
+				"0": 1,
 			},
-			ProducerDelay: 6,
-			Sprint:        64,
+			DelhiBlock: big.NewInt(0),
+			ProducerDelay: map[string]uint64{
+				"0": 3,
+			},
+			Sprint: map[string]uint64{
+				"0": 32,
+			},
 			BackupMultiplier: map[string]uint64{
 				"0":        2,
 				"25275000": 5,
@@ -387,11 +401,18 @@ var (
 		LondonBlock:         big.NewInt(23850000),
 		Bor: &BorConfig{
 			JaipurBlock: 23850000,
+			DelhiBlock:  big.NewInt(38189056),
 			Period: map[string]uint64{
 				"0": 2,
 			},
-			ProducerDelay: 6,
-			Sprint:        64,
+			ProducerDelay: map[string]uint64{
+				"0":        6,
+				"38189056": 4,
+			},
+			Sprint: map[string]uint64{
+				"0":        64,
+				"38189056": 16,
+			},
 			BackupMultiplier: map[string]uint64{
 				"0": 2,
 			},
@@ -550,8 +571,8 @@ func (c *CliqueConfig) String() string {
 // BorConfig is the consensus engine configs for Matic bor based sealing.
 type BorConfig struct {
 	Period                   map[string]uint64      `json:"period"`                   // Number of seconds between blocks to enforce
-	ProducerDelay            uint64                 `json:"producerDelay"`            // Number of seconds delay between two producer interval
-	Sprint                   uint64                 `json:"sprint"`                   // Epoch length to proposer
+	ProducerDelay            map[string]uint64      `json:"producerDelay"`            // Number of seconds delay between two producer interval
+	Sprint                   map[string]uint64      `json:"sprint"`                   // Epoch length to proposer
 	BackupMultiplier         map[string]uint64      `json:"backupMultiplier"`         // Backup multiplier to determine the wiggle time
 	ValidatorContract        string                 `json:"validatorContract"`        // Validator set contract
 	StateReceiverContract    string                 `json:"stateReceiverContract"`    // State receiver contract
@@ -559,6 +580,7 @@ type BorConfig struct {
 	BlockAlloc               map[string]interface{} `json:"blockAlloc"`
 	BurntContract            map[string]string      `json:"burntContract"` // governance contract where the token will be sent to and burnt in london fork
 	JaipurBlock              uint64                 `json:"jaipurBlock"`   // Jaipur switch block (nil = no fork, 0 = already on jaipur)
+	DelhiBlock               *big.Int               `json:"delhiBlock"`    // Delhi switch block (nil = no fork, 0 = already on delhi)
 }
 
 // String implements the stringer interface, returning the consensus engine details.
@@ -931,4 +953,36 @@ func (c *ChainConfig) Rules(num *big.Int, isMerge bool) Rules {
 		IsLondon:         c.IsLondon(num),
 		IsMerge:          isMerge,
 	}
+}
+
+func (c *BorConfig) calculateSprintSizeHelper(field map[string]uint64, number uint64) uint64 {
+	keys := make([]string, 0, len(field))
+	for k := range field {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for i := 0; i < len(keys)-1; i++ {
+		valUint, _ := strconv.ParseUint(keys[i], 10, 64)
+		valUintNext, _ := strconv.ParseUint(keys[i+1], 10, 64)
+
+		if number >= valUint && number < valUintNext {
+			return field[keys[i]]
+		}
+	}
+
+	return field[keys[len(keys)-1]]
+}
+
+func (c *BorConfig) IsDelhi(number *big.Int) bool {
+	return isForked(c.DelhiBlock, number)
+}
+
+func (c *BorConfig) CalculateProducerDelay(number uint64) uint64 {
+	return c.calculateSprintSizeHelper(c.ProducerDelay, number)
+}
+
+func (c *BorConfig) CalculateSprint(number uint64) uint64 {
+	return c.calculateSprintSizeHelper(c.Sprint, number)
 }

@@ -45,7 +45,9 @@ const (
 
 // Bor protocol constants.
 var (
-	defaultSprintLength = uint64(64) // Default number of blocks after which to checkpoint and reset the pending votes
+	defaultSprintLength = map[string]uint64{
+		"0": 64,
+	} // Default number of blocks after which to checkpoint and reset the pending votes
 
 	extraVanity = 32 // Fixed number of extra-data prefix bytes reserved for signer vanity
 	extraSeal   = 65 // Fixed number of extra-data suffix bytes reserved for signer seal
@@ -175,8 +177,8 @@ func CalcProducerDelay(number uint64, succession int, c *params.BorConfig) uint6
 	// When the block is the first block of the sprint, it is expected to be delayed by `producerDelay`.
 	// That is to allow time for block propagation in the last sprint
 	delay := c.CalculatePeriod(number)
-	if number%c.Sprint == 0 {
-		delay = c.ProducerDelay
+	if number%c.CalculateSprint(number) == 0 {
+		delay = c.CalculateProducerDelay(number)
 	}
 
 	if succession > 0 {
@@ -237,7 +239,7 @@ func New(
 	borConfig := chainConfig.Bor
 
 	// Set any missing consensus parameters to their defaults
-	if borConfig != nil && borConfig.Sprint == 0 {
+	if borConfig != nil && borConfig.CalculateSprint(0) == 0 {
 		borConfig.Sprint = defaultSprintLength
 	}
 	// Allocate the snapshot caches and create the engine
@@ -320,7 +322,7 @@ func (c *Bor) verifyHeader(chain consensus.ChainHeaderReader, header *types.Head
 	}
 
 	// check extr adata
-	isSprintEnd := IsSprintStart(number+1, c.config.Sprint)
+	isSprintEnd := IsSprintStart(number+1, c.config.CalculateSprint(number))
 
 	// Ensure that the extra-data contains a signer list on checkpoint, but none otherwise
 	signersBytes := len(header.Extra) - extraVanity - extraSeal
@@ -434,7 +436,7 @@ func (c *Bor) verifyCascadingFields(chain consensus.ChainHeaderReader, header *t
 	}
 
 	// verify the validator list in the last sprint block
-	if IsSprintStart(number, c.config.Sprint) {
+	if IsSprintStart(number, c.config.CalculateSprint(number)) {
 		parentValidatorBytes := parent.Extra[extraVanity : len(parent.Extra)-extraSeal]
 		validatorsBytes := make([]byte, len(snap.ValidatorSet.Validators)*validatorHeaderBytesLength)
 
@@ -659,7 +661,7 @@ func (c *Bor) Prepare(chain consensus.ChainHeaderReader, header *types.Header) e
 	header.Extra = header.Extra[:extraVanity]
 
 	// get validator set if number
-	if IsSprintStart(number+1, c.config.Sprint) {
+	if IsSprintStart(number+1, c.config.CalculateSprint(number)) {
 		newValidators, err := c.spanner.GetCurrentValidators(header.ParentHash, number+1)
 		if err != nil {
 			return errors.New("unknown validators")
@@ -711,7 +713,7 @@ func (c *Bor) Finalize(chain consensus.ChainHeaderReader, header *types.Header, 
 
 	headerNumber := header.Number.Uint64()
 
-	if headerNumber%c.config.Sprint == 0 {
+	if IsSprintStart(headerNumber, c.config.CalculateSprint(headerNumber)) {
 		cx := statefull.ChainContext{Chain: chain, Bor: c}
 		// check and commit span
 		if err := c.checkAndCommitSpan(state, header, cx); err != nil {
@@ -783,7 +785,7 @@ func (c *Bor) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *typ
 
 	headerNumber := header.Number.Uint64()
 
-	if headerNumber%c.config.Sprint == 0 {
+	if IsSprintStart(headerNumber, c.config.CalculateSprint(headerNumber)) {
 		cx := statefull.ChainContext{Chain: chain, Bor: c}
 
 		// check and commit span
@@ -997,7 +999,7 @@ func (c *Bor) needToCommitSpan(span *span.Span, headerNumber uint64) bool {
 	}
 
 	// if current block is first block of last sprint in current span
-	if span.EndBlock > c.config.Sprint && span.EndBlock-c.config.Sprint+1 == headerNumber {
+	if span.EndBlock > c.config.CalculateSprint(headerNumber) && span.EndBlock-c.config.CalculateSprint(headerNumber)+1 == headerNumber {
 		return true
 	}
 
@@ -1055,7 +1057,7 @@ func (c *Bor) CommitStates(
 		return nil, err
 	}
 
-	to := time.Unix(int64(chain.Chain.GetHeaderByNumber(number-c.config.Sprint).Time), 0)
+	to := time.Unix(int64(chain.Chain.GetHeaderByNumber(number-c.config.CalculateSprint(number)).Time), 0)
 	lastStateID := _lastStateID.Uint64()
 
 	log.Info(
@@ -1161,7 +1163,7 @@ func (c *Bor) getNextHeimdallSpanForTest(
 		spanBor.StartBlock = spanBor.EndBlock + 1
 	}
 
-	spanBor.EndBlock = spanBor.StartBlock + (100 * c.config.Sprint) - 1
+	spanBor.EndBlock = spanBor.StartBlock + (100 * c.config.CalculateSprint(headerNumber)) - 1
 
 	selectedProducers := make([]valset.Validator, len(snap.ValidatorSet.Validators))
 	for i, v := range snap.ValidatorSet.Validators {
