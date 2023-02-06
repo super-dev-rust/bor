@@ -10,16 +10,15 @@ import (
 )
 
 type SafePool struct {
-	executionPool *atomic.Pointer[workerpool.WorkerPool]
+	executionPool atomic.Pointer[workerpool.WorkerPool]
 
 	sync.RWMutex
-
-	timeout time.Duration
-	size    int
-
-	// Skip sending task to execution pool
-	fastPath bool
+	timeout  time.Duration
+	size     int
+	fastPath bool // Skip sending task to execution pool
 }
+
+//TODO: we call `github.com/ethereum/go-ethereum/rpc.(*Client).newClientConn` as many times as clients calls, that creates multiple execution pools
 
 func NewExecutionPool(initialSize int, timeout time.Duration) *SafePool {
 	sp := &SafePool{
@@ -33,25 +32,19 @@ func NewExecutionPool(initialSize int, timeout time.Duration) *SafePool {
 		return sp
 	}
 
-	var ptr atomic.Pointer[workerpool.WorkerPool]
 	p := workerpool.New(initialSize)
-	ptr.Store(p)
-	sp.executionPool = &ptr
+	sp.executionPool.Store(p)
 
 	return sp
 }
 
 func (s *SafePool) Submit(ctx context.Context, fn func() error) (<-chan error, bool) {
-	if s.fastPath {
+	if s.isFastPath() {
 		go func() {
 			_ = fn()
 		}()
 
 		return nil, true
-	}
-
-	if s.executionPool == nil {
-		return nil, false
 	}
 
 	pool := s.executionPool.Load()
@@ -63,17 +56,22 @@ func (s *SafePool) Submit(ctx context.Context, fn func() error) (<-chan error, b
 }
 
 func (s *SafePool) ChangeSize(n int) {
+	s.Lock()
+	s.size = n
+
+	if n == 0 {
+		s.fastPath = true
+	}
+
 	oldPool := s.executionPool.Swap(workerpool.New(n))
+
+	s.Unlock()
 
 	if oldPool != nil {
 		go func() {
 			oldPool.StopWait()
 		}()
 	}
-
-	s.Lock()
-	s.size = n
-	s.Unlock()
 }
 
 func (s *SafePool) ChangeTimeout(n time.Duration) {
@@ -88,6 +86,13 @@ func (s *SafePool) Timeout() time.Duration {
 	defer s.RUnlock()
 
 	return s.timeout
+}
+
+func (s *SafePool) isFastPath() bool {
+	s.RLock()
+	defer s.RUnlock()
+
+	return s.fastPath
 }
 
 func (s *SafePool) Size() int {
