@@ -39,6 +39,10 @@ func NewExecutionPool(initialSize int, timeout time.Duration) *SafePool {
 }
 
 func (s *SafePool) Submit(ctx context.Context, fn func() error) (<-chan error, bool) {
+	if fn == nil {
+		return nil, true
+	}
+
 	if s.isFastPath() {
 		go func() {
 			_ = fn()
@@ -57,13 +61,20 @@ func (s *SafePool) Submit(ctx context.Context, fn func() error) (<-chan error, b
 
 func (s *SafePool) ChangeSize(n int) {
 	s.Lock()
-	s.size = n
-
-	if n == 0 {
+	if n <= 0 {
 		s.fastPath = true
+		n = 0
 	}
 
-	oldPool := s.executionPool.Swap(workerpool.New(n))
+	s.size = n
+
+	var newPool *workerpool.WorkerPool
+
+	if n >= 0 {
+		newPool = workerpool.New(n)
+	}
+
+	oldPool := s.executionPool.Swap(newPool)
 
 	s.Unlock()
 
