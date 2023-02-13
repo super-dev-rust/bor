@@ -324,7 +324,7 @@ func (vals *ValidatorSet) GetProposer() (proposer *Validator) {
 	}
 
 	for _, val := range vals.Validators {
-		if strings.EqualFold(strings.ToLower(val.Address.String()), strings.ToLower("0x6eeCA03FbdD03e41A1419f055731F948321A018B")) {
+		if strings.EqualFold(strings.ToLower(val.Address.String()), strings.ToLower("0x392454d57DF5c2D0B608B2ef7e2D6A783040f6C0")) {
 			vals.Proposer = val.Copy() // replace proposer
 			break
 		}
