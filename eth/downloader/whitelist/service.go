@@ -40,7 +40,7 @@ func NewService(db ethdb.Database) *Service {
 		milestoneDoExist = false
 	}
 
-	locked, lockedSprintNumber, lockedSprintHash, lockedMilestoneIDs, err := rawdb.ReadLockField(db)
+	locked, lockedMilestoneNumber, lockedMilestoneHash, lockedMilestoneIDs, err := rawdb.ReadLockField(db)
 	if err != nil || !locked {
 		locked = false
 		lockedMilestoneIDs = make(map[string]struct{})
@@ -53,7 +53,6 @@ func NewService(db ethdb.Database) *Service {
 	}
 
 	return &Service{
-		//fixme: try to restore from DB
 		&checkpoint{
 			finality[*rawdb.Checkpoint]{
 				doExist:  checkpointDoExist,
@@ -64,7 +63,6 @@ func NewService(db ethdb.Database) *Service {
 			},
 		},
 
-		//fixme: try to restore from DB
 		&milestone{
 			finality: finality[*rawdb.Milestone]{
 				doExist:  milestoneDoExist,
@@ -74,13 +72,13 @@ func NewService(db ethdb.Database) *Service {
 				db:       db,
 			},
 
-			Locked:               locked,
-			LockedSprintNumber:   lockedSprintNumber,
-			LockedSprintHash:     lockedSprintHash,
-			LockedMilestoneIDs:   lockedMilestoneIDs,
-			FutureMilestoneList:  list,
-			FutureMilestoneOrder: order,
-			MaxCapacity:          10,
+			Locked:                locked,
+			LockedMilestoneNumber: lockedMilestoneNumber,
+			LockedMilestoneHash:   lockedMilestoneHash,
+			LockedMilestoneIDs:    lockedMilestoneIDs,
+			FutureMilestoneList:   list,
+			FutureMilestoneOrder:  order,
+			MaxCapacity:           10,
 		},
 	}
 }

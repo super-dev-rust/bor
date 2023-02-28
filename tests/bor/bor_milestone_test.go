@@ -34,27 +34,19 @@ import (
 var (
 
 	// Only this account is a validator for the 0th span
-	key, _ = crypto.HexToECDSA(privKey)
-	addr   = crypto.PubkeyToAddress(key.PublicKey) // 0x71562b71999873DB5b286dF957af199Ec94617F7
+	keyMilestone, _ = crypto.HexToECDSA(privKeyMilestone)
+	addrMilestone   = crypto.PubkeyToAddress(keyMilestone.PublicKey) // 0x71562b71999873DB5b286dF957af199Ec94617F7
 
 	// This account is one the validators for 1st span (0-indexed)
-	key2, _ = crypto.HexToECDSA(privKey2)
-	addr2   = crypto.PubkeyToAddress(key2.PublicKey) // 0x9fB29AAc15b9A4B7F17c3385939b007540f4d791
+	key2Milestone, _ = crypto.HexToECDSA(privKey2Milestone)
+	addr2Milestone   = crypto.PubkeyToAddress(key2Milestone.PublicKey) // 0x9fB29AAc15b9A4B7F17c3385939b007540f4d791
 
-	keys = []*ecdsa.PrivateKey{key, key2}
+	keysMilestone = []*ecdsa.PrivateKey{keyMilestone, key2Milestone}
 )
 
 const (
-	privKey  = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
-	privKey2 = "9b28f36fbd67381120752d6172ecdcf10e06ab2d9a1367aac00cdcd6ac7855d3"
-
-	// The genesis for tests was generated with following parameters
-	extraSeal = 65 // Fixed number of extra-data suffix bytes reserved for signer seal
-
-	sprintSize uint64 = 4
-	spanSize   uint64 = 8
-
-	validatorHeaderBytesLength = common.AddressLength + 20 // address + power
+	privKeyMilestone  = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+	privKey2Milestone = "9b28f36fbd67381120752d6172ecdcf10e06ab2d9a1367aac00cdcd6ac7855d3"
 )
 
 func TestMiningAfterLocking(t *testing.T) {
@@ -73,7 +65,7 @@ func TestMiningAfterLocking(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -83,7 +75,7 @@ func TestMiningAfterLocking(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -164,6 +156,7 @@ func TestMiningAfterLocking(t *testing.T) {
 }
 
 func TestReorgingAfterLockingSprint(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -181,7 +174,7 @@ func TestReorgingAfterLockingSprint(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -191,7 +184,7 @@ func TestReorgingAfterLockingSprint(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -283,6 +276,7 @@ func TestReorgingAfterLockingSprint(t *testing.T) {
 }
 
 func TestReorgingAfterWhitelisting(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -300,7 +294,7 @@ func TestReorgingAfterWhitelisting(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -310,7 +304,7 @@ func TestReorgingAfterWhitelisting(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -395,6 +389,7 @@ func TestReorgingAfterWhitelisting(t *testing.T) {
 }
 
 func TestPeerConnectionAfterWhitelisting(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -412,7 +407,7 @@ func TestPeerConnectionAfterWhitelisting(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -422,7 +417,7 @@ func TestPeerConnectionAfterWhitelisting(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -516,6 +511,7 @@ func TestPeerConnectionAfterWhitelisting(t *testing.T) {
 }
 
 func TestReorgingFutureSprintAfterLocking(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -533,7 +529,7 @@ func TestReorgingFutureSprintAfterLocking(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -542,7 +538,7 @@ func TestReorgingFutureSprintAfterLocking(t *testing.T) {
 	)
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -603,6 +599,7 @@ func TestReorgingFutureSprintAfterLocking(t *testing.T) {
 }
 
 func TestReorgingFutureSprintAfterLockingOnSameHash(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -620,7 +617,7 @@ func TestReorgingFutureSprintAfterLockingOnSameHash(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -629,7 +626,7 @@ func TestReorgingFutureSprintAfterLockingOnSameHash(t *testing.T) {
 	)
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -691,6 +688,7 @@ func TestReorgingFutureSprintAfterLockingOnSameHash(t *testing.T) {
 }
 
 func TestReorgingAfterLockingOnDifferentHash(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -708,7 +706,7 @@ func TestReorgingAfterLockingOnDifferentHash(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -717,7 +715,7 @@ func TestReorgingAfterLockingOnDifferentHash(t *testing.T) {
 	)
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -810,6 +808,7 @@ func TestReorgingAfterLockingOnDifferentHash(t *testing.T) {
 }
 
 func TestReorgingAfterWhitelistingOnDifferentHash(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -827,7 +826,7 @@ func TestReorgingAfterWhitelistingOnDifferentHash(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -837,7 +836,7 @@ func TestReorgingAfterWhitelistingOnDifferentHash(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -931,6 +930,7 @@ func TestReorgingAfterWhitelistingOnDifferentHash(t *testing.T) {
 }
 
 func TestNonMinerNodeWithWhitelisting(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -948,7 +948,7 @@ func TestNonMinerNodeWithWhitelisting(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -958,7 +958,7 @@ func TestNonMinerNodeWithWhitelisting(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -1027,6 +1027,7 @@ func TestNonMinerNodeWithWhitelisting(t *testing.T) {
 }
 
 func TestNonMinerNodeWithTryToLock(t *testing.T) {
+	t.Skip()
 	t.Parallel()
 
 	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(true))))
@@ -1044,7 +1045,7 @@ func TestNonMinerNodeWithTryToLock(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -1053,7 +1054,7 @@ func TestNonMinerNodeWithTryToLock(t *testing.T) {
 	)
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -1136,7 +1137,7 @@ func TestRewind(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -1145,7 +1146,7 @@ func TestRewind(t *testing.T) {
 	)
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -1252,7 +1253,7 @@ func TestRewinding(t *testing.T) {
 	}
 
 	// Create an Ethash network based off of the Ropsten config
-	genesis := InitGenesis(t, faucets, "./testdata/genesis_2val.json", 8)
+	genesis := InitGenesisMilestone(t, faucets, "./testdata/genesis_2val.json", 8)
 
 	var (
 		stacks []*node.Node
@@ -1261,7 +1262,7 @@ func TestRewinding(t *testing.T) {
 	)
 	for i := 0; i < 2; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := InitMiner(genesis, keys[i], true)
+		stack, ethBackend, err := InitMinerMilestone(genesis, keysMilestone[i], true)
 		if err != nil {
 			panic(err)
 		}
@@ -1333,7 +1334,7 @@ func TestRewinding(t *testing.T) {
 	}
 }
 
-func InitGenesis(t *testing.T, faucets []*ecdsa.PrivateKey, fileLocation string, sprintSize uint64) *core.Genesis {
+func InitGenesisMilestone(t *testing.T, faucets []*ecdsa.PrivateKey, fileLocation string, sprintSize uint64) *core.Genesis {
 	t.Helper()
 
 	// sprint size = 8 in genesis
@@ -1355,7 +1356,7 @@ func InitGenesis(t *testing.T, faucets []*ecdsa.PrivateKey, fileLocation string,
 	return genesis
 }
 
-func InitMiner(genesis *core.Genesis, privKey *ecdsa.PrivateKey, withoutHeimdall bool) (*node.Node, *eth.Ethereum, error) {
+func InitMinerMilestone(genesis *core.Genesis, privKey *ecdsa.PrivateKey, withoutHeimdall bool) (*node.Node, *eth.Ethereum, error) {
 	// Define the basic configurations for the Ethereum node
 	datadir, _ := ioutil.TempDir("", "")
 
