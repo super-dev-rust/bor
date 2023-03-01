@@ -109,8 +109,12 @@ func (w *Service) IsValidChain(currentHeader *types.Header, chain []*types.Heade
 	}
 
 	// Don't accept future chain of unacceptable length (from current block)
-	if len(futureChain)+offset > int(w.checkpointInterval) {
-		return false, ErrLongFutureChain
+	// if len(futureChain)+offset > int(w.checkpointInterval) {
+	// 	return false, ErrLongFutureChain
+	// }
+
+	if len(futureChain) > 0 {
+		log.Info("[DEBUG] Received future chain", "len", len(futureChain), "offset", offset, "current head", currentHeader.Number.Uint64())
 	}
 
 	// Iterate over the chain and validate against the last checkpoint
