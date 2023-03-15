@@ -108,7 +108,7 @@ func borVerify(ctx context.Context, eth *Ethereum, handler *ethHandler, start ui
 			rewindTo = head - 255
 		}
 
-		rewindBack(eth, head, rewindTo)
+		// rewindBack(eth, head, rewindTo)
 
 		return hash, errRootHashMismatch
 	}
