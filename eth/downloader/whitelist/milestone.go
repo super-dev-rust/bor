@@ -89,6 +89,7 @@ func (m *milestone) IsValidChain(currentHeader *types.Header, chain []*types.Hea
 	}
 
 	isCompatible, skipTdCheck := m.IsFutureMilestoneCompatible(chain)
+	log.Info("Checked future milestone compatibility", "skipTdCheck", skipTdCheck)
 	if !isCompatible {
 		isValid = false
 		return false, skipTdCheck, nil
