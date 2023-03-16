@@ -763,6 +763,7 @@ func (s *Ethereum) handleMilestone(ctx context.Context, ethHandler *ethHandler, 
 	// If the current chain head is behind the received milestone, then we will store the milestone in the
 	// future milestone list.
 	if err != nil {
+		log.Info("[DEBUG] Error in whitelisting milestones", "err", err)
 		ethHandler.downloader.ProcessFutureMilestone(num, hash)
 		return err
 	}

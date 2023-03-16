@@ -93,7 +93,7 @@ func (m *milestone) IsValidChain(currentHeader *types.Header, chain []*types.Hea
 	}
 
 	isCompatible, skipTdCheck := m.IsFutureMilestoneCompatible(chain)
-	log.Info("[DEBUG] Checked future milestone compatibility", "skipTdCheck", skipTdCheck)
+	log.Info("[DEBUG] Checked future milestone compatibility", "isCompatible", isCompatible, "skipTdCheck", skipTdCheck)
 	if !isCompatible {
 		isValid = false
 		return false, skipTdCheck, nil
@@ -302,11 +302,11 @@ func (m *milestone) ProcessFutureMilestone(num uint64, hash common.Hash) {
 // EnqueueFutureMilestone add the future milestone to the list
 func (m *milestone) enqueueFutureMilestone(key uint64, hash common.Hash) {
 	if _, ok := m.FutureMilestoneList[key]; ok {
-		log.Debug("Future milestone already exist", "endBlockNumber", key, "futureMilestoneHash", hash)
+		log.Info("[DEBUG] Future milestone already exist", "endBlockNumber", key, "futureMilestoneHash", hash)
 		return
 	}
 
-	log.Debug("Enqueing new future milestone", "endBlockNumber", key, "futureMilestoneHash", hash)
+	log.Info("[DEBUG] Enqueing new future milestone", "endBlockNumber", key, "futureMilestoneHash", hash)
 
 	m.FutureMilestoneList[key] = hash
 	m.FutureMilestoneOrder = append(m.FutureMilestoneOrder, key)
