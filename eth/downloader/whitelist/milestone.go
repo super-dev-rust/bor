@@ -58,6 +58,8 @@ var (
 func (m *milestone) IsValidChain(currentHeader *types.Header, chain []*types.Header) (bool, bool, error) {
 	var skipTdCheck bool
 
+	log.Info("[DEBUG] In IsValidChain", "current", currentHeader.Number.Uint64(), "chain start", chain[0].Number.Uint64(), "chain end", chain[len(chain)-1].Number.Uint64())
+
 	// Checking for the milestone flag
 	if !flags.Milestone {
 		return true, skipTdCheck, nil
@@ -77,6 +79,7 @@ func (m *milestone) IsValidChain(currentHeader *types.Header, chain []*types.Hea
 	}()
 
 	res, err := m.finality.IsValidChain(currentHeader, chain)
+	log.Info("[DEBUG] Called finality.IsValidChain", "response", res)
 
 	if !res {
 		isValid = false
@@ -85,11 +88,12 @@ func (m *milestone) IsValidChain(currentHeader *types.Header, chain []*types.Hea
 
 	if m.Locked && !m.IsReorgAllowed(chain, m.LockedMilestoneNumber, m.LockedMilestoneHash) {
 		isValid = false
+		log.Info("[DEBUG] Returning due to reorg not allowed")
 		return false, skipTdCheck, nil
 	}
 
 	isCompatible, skipTdCheck := m.IsFutureMilestoneCompatible(chain)
-	log.Info("Checked future milestone compatibility", "skipTdCheck", skipTdCheck)
+	log.Info("[DEBUG] Checked future milestone compatibility", "skipTdCheck", skipTdCheck)
 	if !isCompatible {
 		isValid = false
 		return false, skipTdCheck, nil
