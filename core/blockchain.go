@@ -1381,6 +1381,8 @@ func (bc *BlockChain) writeBlockAndSetHead(block *types.Block, receipts []*types
 		return NonStatTy, err
 	}
 
+	log.Info("[DEBUG] In Write block and set head", "reorg", reorg, "skipTdCheck", skipTdCheck)
+
 	if skipTdCheck || reorg {
 		// Reorganise the chain if the parent is not the head block
 		if block.ParentHash() != currentBlock.Hash() {
