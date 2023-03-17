@@ -972,7 +972,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 					return false
 				}
 			} else {
-				log.Info("Skipping total difficulty validation for incoming future chain")
+				log.Info("[DEBUG] Skipping total difficulty validation for incoming future chain")
 			}
 
 			rawdb.WriteHeadFastBlockHash(bc.db, head.Hash())
@@ -1540,7 +1540,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool)
 	// Check the validity of incoming chain
 	isValid, skipTdCheck, err1 := bc.forker.ValidateReorg(bc.CurrentBlock().Header(), headers, bc.chainConfig)
 	if err1 != nil {
-		log.Warn("Reorg validation failed", "err", err)
+		log.Warn("Reorg validation failed", "err", err1)
 		return it.index, err1
 	}
 

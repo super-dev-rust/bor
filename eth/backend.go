@@ -759,6 +759,7 @@ func (s *Ethereum) handleMilestone(ctx context.Context, ethHandler *ethHandler, 
 	// Create a new bor verifier, which will be used to verify checkpoints and milestones
 	verifier := newBorVerifier()
 	num, hash, err := ethHandler.fetchWhitelistMilestone(ctx, bor, s, verifier)
+	log.Info("[DEBUG] Done fetching and whitelisting milestone", "err", err)
 
 	// If the current chain head is behind the received milestone, then we will store the milestone in the
 	// future milestone list.
