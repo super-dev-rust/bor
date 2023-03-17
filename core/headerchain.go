@@ -285,7 +285,10 @@ func (hc *HeaderChain) writeHeadersAndSetHead(headers []*types.Header, forker *F
 	)
 
 	// Ask the fork choicer to validate reorg
+	log.Info("[DEBUG] Calling ValidateReorg in writeHeadersAndSetHead")
 	isValid, skipTdCheck, err := forker.ValidateReorg(hc.CurrentHeader(), headers, hc.config)
+	log.Info("[DEBUG] Done Calling ValidateReorg in writeHeadersAndSetHead", "valid", isValid, "skipTdCheck", skipTdCheck, "err", err)
+
 	if err != nil {
 		log.Info("Reorg validation failed", "err", err)
 		return nil, err

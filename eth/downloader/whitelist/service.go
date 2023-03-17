@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 var (
@@ -129,12 +130,15 @@ func (s *Service) ProcessCheckpoint(endBlockNum uint64, endBlockHash common.Hash
 // skip the 'total difficulty' check or not. Note that it will only be true for cases when we've
 // received a correct future chain (i.e. ahead of our current block and has a future milestone).
 func (s *Service) IsValidChain(currentHeader *types.Header, chain []*types.Header) (bool, bool, error) {
+	log.Info("[DEBUG] in service.IsValidChain", "current block", currentHeader.Number.Uint64(), "start", chain[0].Number.Uint64(), "end", chain[len(chain)-1].Number.Uint64())
 	checkpointBool, skipTdcheck, err := s.checkpointService.IsValidChain(currentHeader, chain)
+	log.Info("[DEBUG] Done calling checkpoint service", "valid", checkpointBool, "skipTdCheck", skipTdcheck, "err", err)
 	if !checkpointBool {
 		return checkpointBool, skipTdcheck, err
 	}
 
 	milestoneBool, skipTdCheck, err := s.milestoneService.IsValidChain(currentHeader, chain)
+	log.Info("[DEBUG] Done calling milestone service", "valid", milestoneBool, "skipTdCheck", skipTdcheck, "err", err)
 	if !milestoneBool {
 		return milestoneBool, skipTdCheck, err
 	}

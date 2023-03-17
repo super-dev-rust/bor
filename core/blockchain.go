@@ -952,7 +952,9 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 
 		// Rewind may have occurred, skip in that case.
 		if bc.CurrentHeader().Number.Cmp(head.Number()) >= 0 {
+			log.Info("[DEBUG] Calling ValidateReorg in InsertReceiptChain")
 			isValid, skipTdCheck, err := bc.forker.ValidateReorg(bc.CurrentFastBlock().Header(), headers, bc.chainConfig)
+			log.Info("[DEBUG] Done Calling ValidateReorg in InsertReceiptChain", "valid", isValid, "skipTdCheck", skipTdCheck, "err", err)
 			if err != nil {
 				log.Warn("Reorg validation failed", "err", err)
 				return false
@@ -1538,7 +1540,9 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool)
 	blockImportTimer.Mark(int64(len(headers)))
 
 	// Check the validity of incoming chain
+	log.Info("[DEBUG] Calling ValidateReorg in InsertChain")
 	isValid, skipTdCheck, err1 := bc.forker.ValidateReorg(bc.CurrentBlock().Header(), headers, bc.chainConfig)
+	log.Info("[DEBUG] Done Calling ValidateReorg in InsertChain", "valid", isValid, "skipTdCheck", skipTdCheck, "err", err1)
 	if err1 != nil {
 		log.Warn("Reorg validation failed", "err", err1)
 		return it.index, err1
@@ -1950,7 +1954,10 @@ func (bc *BlockChain) insertSideChain(block *types.Block, it *insertIterator) (i
 		lastBlock = block
 	}
 
+	log.Info("[DEBUG] Calling ValidateReorg in InsertSideChain")
 	isValid, skipTdCheck, err := bc.forker.ValidateReorg(current.Header(), headers, bc.chainConfig)
+	log.Info("[DEBUG] Done Calling ValidateReorg in InsertSideChain", "valid", isValid, "skipTdCheck", skipTdCheck, "err", err)
+
 	if err != nil {
 		log.Info("Reorg validation failed", "err", err)
 		return it.index, err
