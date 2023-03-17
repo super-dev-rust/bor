@@ -127,6 +127,7 @@ func (cs *chainSyncer) loop() {
 		case <-cs.peerEventCh:
 			// Peer information changed, recheck.
 		case err := <-cs.doneCh:
+			log.Info("[DEBUG] Stopped syncing", "err", err)
 			cs.doneCh = nil
 			cs.force.Reset(forceSyncCycle)
 			cs.forced = false
@@ -186,6 +187,7 @@ func (cs *chainSyncer) nextSyncOp() *chainSyncOp {
 	// clients to direct the chain head to sync to.
 	peer := cs.handler.peers.peerWithHighestTD()
 	if peer == nil {
+		log.Info("[DEBUG] No peer found for sync")
 		return nil
 	}
 	mode, ourTD := cs.modeAndLocalHead()
@@ -198,6 +200,7 @@ func (cs *chainSyncer) nextSyncOp() *chainSyncOp {
 			log.Warn("Local chain is post-merge, waiting for beacon client sync switch-over...")
 			cs.warned = time.Now()
 		}
+		log.Info("[DEBUG] Peer's TD is less than ours as expected")
 		return nil // We're in sync
 	}
 	return op
@@ -249,6 +252,7 @@ func (cs *chainSyncer) startSync(op *chainSyncOp) {
 
 // doSync synchronizes the local blockchain with a remote peer.
 func (h *handler) doSync(op *chainSyncOp) error {
+	log.Info("[DEBUG] In doSync")
 	if op.mode == downloader.SnapSync {
 		// Before launch the snap sync, we have to ensure user uses the same
 		// txlookup limit.

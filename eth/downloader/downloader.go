@@ -333,6 +333,7 @@ func (d *Downloader) UnregisterPeer(id string) error {
 // LegacySync tries to sync up our local block chain with a remote peer, both
 // adding various sanity checks as well as wrapping it with various log entries.
 func (d *Downloader) LegacySync(id string, head common.Hash, td, ttd *big.Int, mode SyncMode) error {
+	log.Info("[DEBUG] In LegacySync: Starting sync process from a peer")
 	err := d.synchronise(id, head, td, ttd, mode, false, nil)
 
 	switch err {
