@@ -86,7 +86,11 @@ require (
 	pgregory.net/rapid v0.4.8
 )
 
-require github.com/gammazero/deque v0.2.1 // indirect
+require (
+	github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c // indirect
+	github.com/gammazero/deque v0.2.1 // indirect
+	github.com/garslo/gogen v0.0.0-20170306192744-1d203ffc1f61 // indirect
+)
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.21.1 // indirect
