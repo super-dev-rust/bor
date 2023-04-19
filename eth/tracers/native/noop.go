@@ -47,6 +47,10 @@ func (t *noopTracer) CaptureStart(env *vm.EVM, from common.Address, to common.Ad
 func (t *noopTracer) CaptureEnd(output []byte, gasUsed uint64, _ time.Duration, err error) {
 }
 
+func (s *noopTracer) CaptureTxStart(gasUsed uint64) {}
+
+func (s *noopTracer) CaptureTxEnd(gasUsed uint64) {}
+
 // CaptureState implements the EVMLogger interface to trace a single step of VM execution.
 func (t *noopTracer) CaptureState(pc uint64, op vm.OpCode, gas, cost uint64, scope *vm.ScopeContext, rData []byte, depth int, err error) {
 }

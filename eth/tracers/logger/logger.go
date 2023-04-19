@@ -138,6 +138,10 @@ func (l *StructLogger) CaptureStart(env *vm.EVM, from common.Address, to common.
 	l.env = env
 }
 
+func (s *StructLogger) CaptureTxStart(gasUsed uint64) {}
+
+func (s *StructLogger) CaptureTxEnd(gasUsed uint64) {}
+
 // CaptureState logs a new structured log message and pushes it out to the environment
 //
 // CaptureState also tracks SLOAD/SSTORE ops to track storage change.
@@ -312,6 +316,10 @@ func (t *mdLogger) CaptureStart(env *vm.EVM, from common.Address, to common.Addr
 |-------|-------------|------|-----------|-----------|---------|
 `)
 }
+
+func (s *mdLogger) CaptureTxStart(gasUsed uint64) {}
+
+func (s *mdLogger) CaptureTxEnd(gasUsed uint64) {}
 
 // CaptureState also tracks SLOAD/SSTORE ops to track storage change.
 func (t *mdLogger) CaptureState(pc uint64, op vm.OpCode, gas, cost uint64, scope *vm.ScopeContext, rData []byte, depth int, err error) {

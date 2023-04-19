@@ -746,6 +746,10 @@ func (jst *jsTracer) CaptureState(pc uint64, op vm.OpCode, gas, cost uint64, sco
 	}
 }
 
+func (jst *jsTracer) CaptureTxStart(gasLimit uint64) {}
+
+func (jst *jsTracer) CaptureTxEnd(restGas uint64) {}
+
 // CaptureFault implements the Tracer interface to trace an execution fault
 func (jst *jsTracer) CaptureFault(pc uint64, op vm.OpCode, gas, cost uint64, scope *vm.ScopeContext, depth int, err error) {
 	if jst.err != nil {

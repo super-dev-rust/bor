@@ -91,6 +91,10 @@ func (t *callTracer) CaptureEnd(output []byte, gasUsed uint64, _ time.Duration, 
 	}
 }
 
+func (s *callTracer) CaptureTxStart(gasUsed uint64) {}
+
+func (s *callTracer) CaptureTxEnd(gasUsed uint64) {}
+
 // CaptureState implements the EVMLogger interface to trace a single step of VM execution.
 func (t *callTracer) CaptureState(pc uint64, op vm.OpCode, gas, cost uint64, scope *vm.ScopeContext, rData []byte, depth int, err error) {
 }

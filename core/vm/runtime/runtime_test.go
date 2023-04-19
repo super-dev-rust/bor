@@ -345,6 +345,10 @@ func (s *stepCounter) CaptureState(pc uint64, op vm.OpCode, gas, cost uint64, sc
 	//s.inner.CaptureState(env, pc, op, gas, cost, memory, stack, rStack, contract, depth, err)
 }
 
+func (s *stepCounter) CaptureTxStart(gasUsed uint64) {}
+
+func (s *stepCounter) CaptureTxEnd(gasUsed uint64) {}
+
 // benchmarkNonModifyingCode benchmarks code, but if the code modifies the
 // state, this should not be used, since it does not reset the state between runs.
 func benchmarkNonModifyingCode(gas uint64, code []byte, name string, tracerCode string, b *testing.B) {
