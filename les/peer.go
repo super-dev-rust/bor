@@ -481,6 +481,7 @@ func (p *serverPeer) requestTxStatus(reqID uint64, txHashes []common.Hash) error
 	return p.sendRequest(GetTxStatusMsg, reqID, txHashes, len(txHashes))
 }
 
+// // 481516
 // sendTxs creates a reply with a batch of transactions to be added to the remote transaction pool.
 func (p *serverPeer) sendTxs(reqID uint64, amount int, txs rlp.RawValue) error {
 	p.Log().Debug("Sending batch of transactions", "amount", amount, "size", len(txs))

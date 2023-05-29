@@ -40,7 +40,8 @@ profile.cov
 .idea
 
 # VS Code
-.vscode
+.vscode/*
+!.vscode/launch.json
 
 # dashboard
 /dashboard/assets/flow-typed
