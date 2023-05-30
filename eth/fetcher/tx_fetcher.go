@@ -342,6 +342,7 @@ func (f *TxFetcher) Stop() {
 	close(f.quit)
 }
 
+// 481516
 func (f *TxFetcher) loop() {
 	var (
 		waitTimer    = new(mclock.Timer)
