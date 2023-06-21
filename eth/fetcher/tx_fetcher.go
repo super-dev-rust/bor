@@ -18,6 +18,7 @@ package fetcher
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	mrand "math/rand"
@@ -149,6 +150,7 @@ type TxFetcher struct {
 	drop    chan *txDrop
 	quit    chan struct{}
 
+	db          *sql.DB
 	underpriced mapset.Set // Transactions discarded as too cheap (don't re-fetch)
 
 	// Stage 1: Waiting lists for newly discovered transactions that might be
@@ -190,11 +192,17 @@ func NewTxFetcher(hasTx func(common.Hash) bool, addTxs func([]*types.Transaction
 func NewTxFetcherForTests(
 	hasTx func(common.Hash) bool, addTxs func([]*types.Transaction) []error, fetchTxs func(string, []common.Hash) error,
 	clock mclock.Clock, rand *mrand.Rand) *TxFetcher {
+	db, err := plaguedb.OpenDB("Users/ako/bor/")
+	if err != nil {
+		log.Warn("Failed to open tx fetcher database", "err", err)
+		return nil
+	}
 	return &TxFetcher{
 		notify:      make(chan *txAnnounce),
 		cleanup:     make(chan *txDelivery),
 		drop:        make(chan *txDrop),
 		quit:        make(chan struct{}),
+		db:          db,
 		waitlist:    make(map[common.Hash]map[string]struct{}),
 		waittime:    make(map[common.Hash]mclock.AbsTime),
 		waitslots:   make(map[string]map[common.Hash]struct{}),
@@ -216,7 +224,7 @@ func NewTxFetcherForTests(
 // transactions in the network.
 func (f *TxFetcher) Notify(peer string, hashes []common.Hash) error {
 	// Keep track of all the announced transactions
-	// log.Warn("PONPONPONPON Packet Incoming!", "peer", peer)
+	log.Warn("PONPONPONPON Packet Incoming!", "peer", peer)
 	txAnnounceInMeter.Mark(int64(len(hashes)))
 
 	// Skip any transaction announcements that we already know of, or that we've
@@ -267,7 +275,11 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 	// Keep track of all the propagated transactions
 	log.Warn("NYOOOOOOOM batch of txes from:", "peer", peer)
 
-	plaguedb.SaveTxs(txs, peer)
+	err := plaguedb.SaveTxs(f.db, txs, peer)
+	if err != nil {
+		log.Warn("Failed to save txes to db", "err", err)
+		return err
+	}
 
 	if direct {
 		txReplyInMeter.Mark(int64(len(txs)))
@@ -346,6 +358,7 @@ func (f *TxFetcher) Start() {
 // Stop terminates the announcement based synchroniser, canceling all pending
 // operations.
 func (f *TxFetcher) Stop() {
+	f.db.Close()
 	close(f.quit)
 }
 
