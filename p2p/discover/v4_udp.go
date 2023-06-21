@@ -127,6 +127,7 @@ type reply struct {
 }
 
 func ListenV4(c UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv4, error) {
+	log.Warn("SAMIR")
 	cfg = cfg.withDefaults()
 	closeCtx, cancel := context.WithCancel(context.Background())
 	t := &UDPv4{
@@ -174,6 +175,7 @@ func (t *UDPv4) Close() {
 // version of the node record for it. It returns n if the node could not be resolved.
 func (t *UDPv4) Resolve(n *enode.Node) *enode.Node {
 	// Try asking directly. This works if the node is still responding on the endpoint we have.
+	log.Warn("We in Resolve", "node", n)
 	if rn, err := t.RequestENR(n); err == nil {
 		return rn
 	}
@@ -208,6 +210,7 @@ func (t *UDPv4) ourEndpoint() v4wire.Endpoint {
 
 // Ping sends a ping message to the given node.
 func (t *UDPv4) Ping(n *enode.Node) error {
+	log.Info("Moshi moshi", "node", n)
 	_, err := t.ping(n)
 	return err
 }
@@ -300,13 +303,13 @@ func (t *UDPv4) newLookup(ctx context.Context, targetKey encPubkey) *lookup {
 // the node has sent up to k neighbors.
 func (t *UDPv4) findnode(toid enode.ID, toaddr *net.UDPAddr, target v4wire.Pubkey) ([]*node, error) {
 	t.ensureBond(toid, toaddr)
-
 	// Add a matcher for 'neighbours' replies to the pending reply queue. The matcher is
 	// active until enough nodes have been received.
 	nodes := make([]*node, 0, bucketSize)
 	nreceived := 0
 	rm := t.pending(toid, toaddr.IP, v4wire.NeighborsPacket, func(r v4wire.Packet) (matched bool, requestDone bool) {
 		reply := r.(*v4wire.Neighbors)
+		// log.Info("Reply", "reply", reply)
 		for _, rn := range reply.Nodes {
 			nreceived++
 			n, err := t.nodeFromRPC(toaddr, rn)
@@ -454,6 +457,7 @@ func (t *UDPv4) loop() {
 			plist.PushBack(p)
 
 		case r := <-t.gotreply:
+			// reply
 			var matched bool // whether any replyMatcher considered the reply acceptable.
 			for el := plist.Front(); el != nil; el = el.Next() {
 				p := el.Value.(*replyMatcher)
@@ -541,6 +545,7 @@ func (t *UDPv4) readLoop(unhandled chan<- ReadPacket) {
 }
 
 func (t *UDPv4) handlePacket(from *net.UDPAddr, buf []byte) error {
+	// log.Warn("When I will be there? And from its' packet?", "from", from)
 	rawpacket, fromKey, hash, err := v4wire.Decode(buf)
 	if err != nil {
 		t.log.Debug("Bad discv4 packet", "addr", from, "err", err)
@@ -614,9 +619,11 @@ func (t *UDPv4) wrapPacket(p v4wire.Packet) *packetHandlerV4 {
 	case *v4wire.Pong:
 		h.preverify = t.verifyPong
 	case *v4wire.Findnode:
+		// log.Warn("v4wireFindNode")
 		h.preverify = t.verifyFindnode
 		h.handle = t.handleFindnode
 	case *v4wire.Neighbors:
+		// log.Warn("v4Wire Neighbors")
 		h.preverify = t.verifyNeighbors
 	case *v4wire.ENRRequest:
 		h.preverify = t.verifyENRRequest
@@ -717,6 +724,7 @@ func (t *UDPv4) verifyFindnode(h *packetHandlerV4, from *net.UDPAddr, fromID eno
 }
 
 func (t *UDPv4) handleFindnode(h *packetHandlerV4, from *net.UDPAddr, fromID enode.ID, mac []byte) {
+	// log.Warn("it will be called a lot", "from", from)
 	req := h.Packet.(*v4wire.Findnode)
 
 	// Determine closest nodes.

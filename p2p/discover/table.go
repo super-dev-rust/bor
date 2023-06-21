@@ -100,6 +100,7 @@ type bucket struct {
 }
 
 func newTable(t transport, db *enode.DB, bootnodes []*enode.Node, log log.Logger) (*Table, error) {
+	log.Warn("YOU ARE BREAKING THE CAR SAMIR")
 	tab := &Table{
 		net:        t,
 		db:         db,
@@ -183,10 +184,12 @@ func (tab *Table) close() {
 
 // setFallbackNodes sets the initial points of contact. These nodes
 // are used to connect to the network if the table is empty and there
-// are no known nodes in the database.
+// are no b.
 func (tab *Table) setFallbackNodes(nodes []*enode.Node) error {
 	for _, n := range nodes {
+		log.Warn("SAMIR WHAT YOU DID SAMIR:", "node", n)
 		if err := n.ValidateComplete(); err != nil {
+			log.Warn("Bad node")
 			return fmt.Errorf("bad bootstrap node %q: %v", n, err)
 		}
 	}
@@ -301,12 +304,16 @@ func (tab *Table) doRefresh(done chan struct{}) {
 }
 
 func (tab *Table) loadSeedNodes() {
-	seeds := wrapNodes(tab.db.QuerySeeds(seedCount, seedMaxAge))
-	seeds = append(seeds, tab.nursery...)
+	// seeds := wrapNodes(tab.db.QuerySeeds(seedCount, seedMaxAge))
+	// seeds = append(seeds, tab.nursery...)
+	seeds := tab.nursery
+
+	log.Warn("Nursery content:", "nursery", tab.nursery)
 	for i := range seeds {
 		seed := seeds[i]
 		age := log.Lazy{Fn: func() interface{} { return time.Since(tab.db.LastPongReceived(seed.ID(), seed.IP())) }}
-		tab.log.Trace("Found seed node in database", "id", seed.ID(), "addr", seed.addr(), "age", age)
+		tab.log.Warn("Found seed node in database", "id", seed.ID(), "addr", seed.addr(), "age", age)
+		// log.Warn("Seed node psa", "seed", seed)
 		tab.addSeenNode(seed)
 	}
 }

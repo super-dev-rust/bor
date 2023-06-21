@@ -715,11 +715,12 @@ running:
 		case <-srv.quit:
 			// The server was stopped. Run the cleanup logic.
 			break running
-
+		// 438308 Check if it add persistent nodes and check where it's added
 		case n := <-srv.addtrusted:
 			// This channel is used by AddTrustedPeer to add a node
 			// to the trusted node set.
-			srv.log.Trace("Adding trusted node", "node", n)
+			srv.log.Info("Adding trusted node", "node", n)
+			//Or where trusted nodes us used
 			trusted[n.ID()] = true
 			if p, ok := peers[n.ID()]; ok {
 				p.rw.set(trustedConn, true)
@@ -769,7 +770,7 @@ running:
 			// A peer disconnected.
 			d := common.PrettyDuration(mclock.Now() - pd.created)
 			delete(peers, pd.ID())
-			srv.log.Info("Removing p2p peer", "peercount", len(peers), "id", pd.ID(), "duration", d, "req", pd.requested, "err", pd.err)
+			srv.log.Warn("Removing p2p peer", "peercount", len(peers), "id", pd.ID(), "duration", d, "req", pd.requested, "err", pd.err)
 			srv.dialsched.peerRemoved(pd.rw)
 			if pd.Inbound() {
 				inboundCount--
@@ -803,12 +804,16 @@ running:
 func (srv *Server) postHandshakeChecks(peers map[enode.ID]*Peer, inboundCount int, c *conn) error {
 	switch {
 	case !c.is(trustedConn) && len(peers) >= srv.MaxPeers:
+		log.Warn("DiscTooManyPeers")
 		return DiscTooManyPeers
 	case !c.is(trustedConn) && c.is(inboundConn) && inboundCount >= srv.maxInboundConns():
+		log.Warn("MaxinboundConns")
 		return DiscTooManyPeers
 	case peers[c.node.ID()] != nil:
+		log.Warn("AlreadyConnected")
 		return DiscAlreadyConnected
 	case c.node.ID() == srv.localnode.ID():
+		log.Warn("Self?")
 		return DiscSelf
 	default:
 		return nil
@@ -820,6 +825,12 @@ func (srv *Server) addPeerChecks(peers map[enode.ID]*Peer, inboundCount int, c *
 	if len(srv.Protocols) > 0 && countMatchingProtocols(srv.Protocols, c.caps) == 0 {
 		return DiscUselessPeer
 	}
+	// peerIp := net.ParseIP("3.227.13.44")
+	// isConnectingToTarget := c.node.IP().Equal(peerIp)
+	// if !isConnectingToTarget {
+	// 	return DiscUselessPeer
+	// }
+	log.Info("Not anymore")
 	// Repeat the post-handshake checks because the
 	// peer set might have changed since those checks were performed.
 	return srv.postHandshakeChecks(peers, inboundCount, c)
@@ -897,6 +908,7 @@ func (srv *Server) listenLoop() {
 	}
 }
 
+// 438308 check inbound conn
 func (srv *Server) checkInboundConn(remoteIP net.IP) error {
 	if remoteIP == nil {
 		return nil

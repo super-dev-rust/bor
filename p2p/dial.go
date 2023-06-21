@@ -64,6 +64,7 @@ type tcpDialer struct {
 }
 
 func (t tcpDialer) Dial(ctx context.Context, dest *enode.Node) (net.Conn, error) {
+	// log.Warn("Im tired of this shit already", "dest", nodeAddr(dest).String())
 	return t.d.DialContext(ctx, "tcp", nodeAddr(dest).String())
 }
 

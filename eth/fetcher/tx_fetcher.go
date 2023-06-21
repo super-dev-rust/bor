@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/plaguedb"
 )
 
 const (
@@ -215,6 +216,7 @@ func NewTxFetcherForTests(
 // transactions in the network.
 func (f *TxFetcher) Notify(peer string, hashes []common.Hash) error {
 	// Keep track of all the announced transactions
+	// log.Warn("PONPONPONPON Packet Incoming!", "peer", peer)
 	txAnnounceInMeter.Mark(int64(len(hashes)))
 
 	// Skip any transaction announcements that we already know of, or that we've
@@ -263,6 +265,10 @@ func (f *TxFetcher) Notify(peer string, hashes []common.Hash) error {
 // re-shedule missing transactions as soon as possible.
 func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) error {
 	// Keep track of all the propagated transactions
+	log.Warn("NYOOOOOOOM batch of txes from:", "peer", peer)
+
+	plaguedb.SaveTxs(txs, peer)
+
 	if direct {
 		txReplyInMeter.Mark(int64(len(txs)))
 	} else {
@@ -333,6 +339,7 @@ func (f *TxFetcher) Drop(peer string) error {
 // Start boots up the announcement based synchroniser, accepting and processing
 // hash notifications and block fetches until termination requested.
 func (f *TxFetcher) Start() {
+	// ponpon
 	go f.loop()
 }
 
@@ -344,6 +351,7 @@ func (f *TxFetcher) Stop() {
 
 // 481516
 func (f *TxFetcher) loop() {
+	//ponpon loop
 	var (
 		waitTimer    = new(mclock.Timer)
 		timeoutTimer = new(mclock.Timer)

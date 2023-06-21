@@ -86,7 +86,10 @@ require (
 	pgregory.net/rapid v0.4.8
 )
 
-require github.com/gammazero/deque v0.2.1 // indirect
+require (
+	github.com/gammazero/deque v0.2.1 // indirect
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+)
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.21.1 // indirect
