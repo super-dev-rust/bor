@@ -67,7 +67,7 @@ func saveTx(db *sql.DB, tx *types.Transaction, peerID string) error {
 }
 
 func OpenDB(path string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./watcher.db")
+	db, err := sql.Open("sqlite3", "./watcher.db?_journal_mode=WAL")
 	if err != nil {
 		return nil, err
 	}
