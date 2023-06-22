@@ -78,6 +78,7 @@ func Fuzz(input []byte) int {
 	rand := rand.New(rand.NewSource(0x3a29)) // Same used in package tests!!!
 
 	f := fetcher.NewTxFetcherForTests(
+		nil,
 		func(common.Hash) bool { return false },
 		func(txs []*types.Transaction) []error {
 			return make([]error, len(txs))

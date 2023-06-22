@@ -100,7 +100,6 @@ type bucket struct {
 }
 
 func newTable(t transport, db *enode.DB, bootnodes []*enode.Node, log log.Logger) (*Table, error) {
-	log.Warn("YOU ARE BREAKING THE CAR SAMIR")
 	tab := &Table{
 		net:        t,
 		db:         db,
@@ -187,7 +186,6 @@ func (tab *Table) close() {
 // are no b.
 func (tab *Table) setFallbackNodes(nodes []*enode.Node) error {
 	for _, n := range nodes {
-		log.Warn("SAMIR WHAT YOU DID SAMIR:", "node", n)
 		if err := n.ValidateComplete(); err != nil {
 			log.Warn("Bad node")
 			return fmt.Errorf("bad bootstrap node %q: %v", n, err)

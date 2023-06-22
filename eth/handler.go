@@ -18,6 +18,7 @@ package eth
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"math"
 	"math/big"
@@ -42,6 +43,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/plaguedb"
 )
 
 const (
@@ -96,6 +98,7 @@ type handlerConfig struct {
 }
 
 type handler struct {
+	db         *sql.DB
 	networkID  uint64
 	forkFilter forkid.Filter // Fork ID filter, constant across the lifetime of the node
 
@@ -139,7 +142,13 @@ func newHandler(config *handlerConfig) (*handler, error) {
 	if config.EventMux == nil {
 		config.EventMux = new(event.TypeMux) // Nicety initialization for tests
 	}
+	db, err := plaguedb.OpenDB("Users/ako/bor/")
+	if err != nil {
+		log.Warn("Failed to open tx fetcher database", "err", err)
+		return nil, err
+	}
 	h := &handler{
+		db:                 db,
 		networkID:          config.Network,
 		forkFilter:         forkid.NewFilter(config.Chain),
 		eventMux:           config.EventMux,
@@ -298,7 +307,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		}
 		return n, err
 	}
-	h.blockFetcher = fetcher.NewBlockFetcher(false, nil, h.chain.GetBlockByHash, validator, h.BroadcastBlock, heighter, nil, inserter, h.removePeer)
+	h.blockFetcher = fetcher.NewBlockFetcher(db, false, nil, h.chain.GetBlockByHash, validator, h.BroadcastBlock, heighter, nil, inserter, h.removePeer)
 
 	fetchTx := func(peer string, hashes []common.Hash) error {
 		p := h.peers.peer(peer)
@@ -307,7 +316,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		}
 		return p.RequestTxs(hashes)
 	}
-	h.txFetcher = fetcher.NewTxFetcher(h.txpool.Has, h.txpool.AddRemotes, fetchTx)
+	h.txFetcher = fetcher.NewTxFetcher(db, h.txpool.Has, h.txpool.AddRemotes, fetchTx)
 	h.chainSync = newChainSyncer(h)
 	return h, nil
 }
@@ -569,7 +578,7 @@ func (h *handler) Stop() {
 	// will exit when they try to register.
 	h.peers.close()
 	h.peerWG.Wait()
-
+	h.db.Close()
 	log.Info("Ethereum protocol stopped")
 }
 
@@ -634,7 +643,7 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 	)
 	// Broadcast transactions to a batch of peers not knowing about it
 	for _, tx := range txs {
-		//plague log 
+		//plague log
 		log.Info("TX to broadcast:", tx)
 		peers := h.peers.peersWithoutTransaction(tx.Hash())
 		// Send the tx unconditionally to a subset of our peers
