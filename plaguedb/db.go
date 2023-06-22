@@ -112,7 +112,8 @@ func prepareAndExecQuery(db *sql.DB, queryString string) error {
 func InsertBlockFetched(db *sql.DB, block *types.Block) error {
 	ts := time.Now().Unix()
 	insertSQL := `INSERT INTO block_fetched(block_hash, block_number, first_seen_ts) VALUES(?,?,?)`
-	_, err := db.Exec(insertSQL, block.Hash().Hex(), block.Number(), ts)
+
+	_, err := db.Exec(insertSQL, block.Hash().Hex(), block.NumberU64(), ts)
 	return err
 }
 
