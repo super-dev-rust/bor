@@ -17,9 +17,11 @@ func SaveTxs(db *sql.DB, txs []*types.Transaction, peerID string) error {
 			log.Warn("Failed to save transaction:", "tx", tx.Hash().Hex(), "err", err)
 			return err
 		} else {
-			// log.Warn("Saved transaction:", "tx", tx.Hash().Hex())
+			log.Trace("Saved transaction:", "tx", tx.Hash().Hex())
+			return nil
 		}
 	}
+	log.Trace("Saved transactions:", "count", len(txs))
 	return nil
 }
 
@@ -55,9 +57,11 @@ func saveTx(db *sql.DB, tx *types.Transaction, peerID string) error {
 	}
 
 	if !strings.Contains(peerIDs, peerID) {
+		log.Warn("Purpurin")
 		peerIDs = peerIDs + "," + peerID
 		updateSQL := `UPDATE tx_summary SET peer_id = ? WHERE tx_hash = ?`
 		_, err := db.Exec(updateSQL, peerIDs, tx.Hash().Hex())
+		log.Warn("Purpurin2", "err", err)
 		if err != nil {
 			log.Warn("Failed to update the tx:", "err", err)
 			return err
@@ -67,6 +71,7 @@ func saveTx(db *sql.DB, tx *types.Transaction, peerID string) error {
 }
 
 func OpenDB(path string) (*sql.DB, error) {
+	log.Warn("Opening DB")
 	db, err := sql.Open("sqlite3", "./watcher.db?_journal_mode=WAL")
 	if err != nil {
 		return nil, err
@@ -97,6 +102,7 @@ func OpenDB(path string) (*sql.DB, error) {
 		);`); err != nil {
 		return nil, err
 	}
+	log.Warn("DB opened")
 	return db, nil
 }
 
@@ -112,8 +118,8 @@ func prepareAndExecQuery(db *sql.DB, queryString string) error {
 func InsertBlockFetched(db *sql.DB, block *types.Block) error {
 	ts := time.Now().Unix()
 	insertSQL := `INSERT INTO block_fetched(block_hash, block_number, first_seen_ts) VALUES(?,?,?)`
-
-	_, err := db.Exec(insertSQL, block.Hash().Hex(), block.Number(), ts)
+	log.Warn("Inserting block", "block", block.NumberU64())
+	_, err := db.Exec(insertSQL, block.Hash().Hex(), block.NumberU64(), ts)
 	return err
 }
 
